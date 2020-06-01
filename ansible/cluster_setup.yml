@@ -1,0 +1,12 @@
+---
+- hosts: master
+  tasks: 
+  - name: check connectivity to gcr.io
+    become: yes
+    command: /usr/bin/kubeadm config images pull
+
+  - name: init cluster
+    become: yes
+    command: /usr/bin/kubeadm init
+
+

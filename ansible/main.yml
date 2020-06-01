@@ -1,0 +1,4 @@
+- import_playbook: kubeadm_setup.yml
+- import_playbook: cluster_setup.yml
+- import_playbook: connect_to_cluster.yml
+- import_playbook: finalize_master_setup.yml

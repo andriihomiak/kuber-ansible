@@ -1,0 +1,14 @@
+---
+- hosts: master
+  tasks:
+    - name: untaint control node
+      command: /usr/bin/kubectl taint nodes --all node-role.kubernetes.io/master-
+      ignore_errors: yes
+
+
+    - name: download admin config
+      become: yes
+      fetch: 
+        dest: master_files/
+        flat: yes
+        src: /etc/kubernetes/admin.conf

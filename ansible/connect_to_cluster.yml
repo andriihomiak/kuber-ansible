@@ -1,0 +1,45 @@
+---
+- hosts: master
+  tasks:
+
+  - name: get home dir
+    shell: echo $HOME
+    register: homedir
+
+  - debug: var=homedir.stdout_lines[0]
+
+  - name: get id
+    shell: id -u
+    register: user_id
+  
+  - debug: var=user_id.stdout_lines[0]
+
+  - name: get group id
+    shell: id -g
+    register: group_id
+
+  - debug: var=group_id.stdout_lines[0]
+
+  - name: change ownership of kubeconfig
+    become: yes
+    shell: |
+      mkdir -p {{ homedir.stdout_lines[0] }}/.kube
+      sudo cp /etc/kubernetes/admin.conf {{ homedir.stdout_lines[0] }}/.kube/config
+      chown {{ user_id.stdout_lines[0] }}:{{ group_id.stdout_lines[0] }} {{ homedir.stdout_lines[0] }}/.kube/config
+
+
+
+  - name: get cluster connection command
+    command: /usr/bin/kubeadm token create --print-join-command
+    register: token
+
+  - debug: var=token.stdout_lines
+
+  - name: install pod network
+    command: /usr/bin/kubectl apply -f https://docs.projectcalico.org/v3.14/manifests/calico.yaml
+
+- hosts: worker_nodes
+  tasks: 
+  - name: connect_to_cluster
+    become: yes
+    shell: "{{ hostvars['master']['token'].stdout_lines[0] }}"

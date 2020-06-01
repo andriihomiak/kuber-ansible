@@ -1,0 +1,55 @@
+---
+- hosts: all
+  tasks:
+  - name: edit /etc/fstab
+    replace: 
+      regexp: '.*swap.*' 
+      path: /etc/fstab
+    become: yes
+  
+  - name: disable swap
+    command: /sbin/swapoff -a
+    changed_when: False
+    become: yes
+
+  - name: update iptables
+    become: yes
+    blockinfile:
+      path: /etc/sysctl.d/k8s.conf
+      create: yes
+      block: |
+        net.bridge.bridge-nf-call-ip6tables = 1
+        net.bridge.bridge-nf-call-iptables = 1
+
+  - name: restart sysctl
+    become: yes
+    changed_when: False
+    command: /sbin/sysctl --system
+
+  - name: load br_netfilter
+    become: yes
+    command: /sbin/modprobe br_netfilter
+    changed_when: False
+
+  - name: download docker install script
+    command: /usr/bin/curl -fsSL https://get.docker.com -o get-docker.sh
+
+  - name: install docker from script
+    become: yes
+    command: /bin/sh get-docker.sh
+
+  - name: add user to group
+    become: yes
+    shell: /usr/sbin/usermod -aG docker $USER
+
+  - name: install kubelet, kubeadm, kubectl
+    become: yes
+    shell: |
+      sudo apt-get update && sudo apt-get install -y apt-transport-https curl
+      curl -s https://packages.cloud.google.com/apt/doc/apt-key.gpg | sudo apt-key add -
+      cat <<EOF | sudo tee /etc/apt/sources.list.d/kubernetes.list
+      deb https://apt.kubernetes.io/ kubernetes-xenial main
+      EOF
+      sudo apt-get update
+      sudo apt-get install -y kubelet kubeadm kubectl
+      sudo apt-mark hold kubelet kubeadm kubectl
