@@ -15,7 +15,7 @@ Ensure that your nodes are accessible from your working machine via ssh.
 
 > Important: nodes should have the same sudo password for ansible `become` to work properly!
 
-Create `hosts.ini` with `master` node ans `[worker_nodes]` section.
+Create `hosts.ini` with `master` node and `[worker_nodes]` section.
 Example configs:
 
 ```
@@ -27,7 +27,7 @@ node1 # entry from ~/.ssh/config
 192.168.1.2 # plain ip
 node3.mydomain.com # domain name
 ```
-`example.hosts.ini` contains example of 2-node cluster with 1 worker node:
+`example.hosts.ini` contains example of 2-node cluster with 1 worker node (`master` is registered at `~/.ssh/config`):
 ```
 master
 
